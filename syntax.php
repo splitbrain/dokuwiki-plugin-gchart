@@ -60,9 +60,23 @@ class syntax_plugin_gchart extends DokuWiki_Syntax_Plugin {
      */
     function handle($match, $state, $pos, &$handler){
 
+        $return = array(
+                     'type'   => 'p3',
+                     'data'   => $data,
+                     'width'  => 600,
+                     'height' => 100,
+                     'align'  => 'center'
+                    );
+
         $lines = explode("\n",$match);
         $conf = array_shift($lines);
         array_pop($lines);
+
+        if(preg_match('/\b(left|center|right)\b/i',$conf,$match)) $return['align'] = $match[1];
+        if(preg_match('/\b(\d+)x(\d+)\b/',$conf,$match)){
+            $return['width']  = $match[1];
+            $return['height'] = $match[2];
+        }
 
         $data = array();
         foreach ( $lines as $line ) {
@@ -77,13 +91,9 @@ class syntax_plugin_gchart extends DokuWiki_Syntax_Plugin {
             $data[trim($line[0])] = trim($line[1]);
         }
         arsort($data,SORT_NUMERIC);
+        $return['data'] = $data;
 
-        return array(
-                     'data'   => $data,
-                     'width'  => 600,
-                     'height' => 100,
-                     'align'  => 'center'
-                    );
+        return $return;
     }
 
     /**
@@ -96,7 +106,7 @@ class syntax_plugin_gchart extends DokuWiki_Syntax_Plugin {
         $key = array_keys($data['data']);
 
         $params = array(
-            'cht'  => 'p3',               # type = 3dpie
+            'cht'  => $data['type'],
             'chf'  => 'bg,s,282C2F',      # background
             'chco' => '1C86EE',           # pie color
             'chs'  => $data['width'].'x'.$data['height'], # size
@@ -105,10 +115,13 @@ class syntax_plugin_gchart extends DokuWiki_Syntax_Plugin {
         );
 
         $url = 'http://chart.apis.google.com/chart?'.buildURLparams($params, '&').'&.png';
-
         $url = ml($url);
 
-        $R->doc .= '<img src="'.$url.'" class="media_'.$data['align'].' alt="" width="'.$data['width'].'" height="'.$data['height'].'" />';
+        $align = '';
+        if($data['align'] == 'left')  $align=' align="left"';
+        if($data['align'] == 'right') $align=' align="right"';
+
+        $R->doc .= '<img src="'.$url.'" class="media'.$data['align'].' alt="" width="'.$data['width'].'" height="'.$data['height'].'"'.$align.' />';
         return true;
     }
 
