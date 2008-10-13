@@ -77,6 +77,9 @@ class syntax_plugin_gchart extends DokuWiki_Syntax_Plugin {
             $return['width']  = $match[1];
             $return['height'] = $match[2];
         }
+        if(preg_match('/\b(pie(3d)?|pie2d|line|spark(line)?|h?bar|vbar)\b/i',$conf,$match)){
+            $return['type'] = $this->_charttype($match[1]);
+        }
 
         $data = array();
         foreach ( $lines as $line ) {
@@ -90,7 +93,6 @@ class syntax_plugin_gchart extends DokuWiki_Syntax_Plugin {
             $line[1] = str_replace('\\=','=',$line[1]);
             $data[trim($line[0])] = trim($line[1]);
         }
-        arsort($data,SORT_NUMERIC);
         $return['data'] = $data;
 
         return $return;
@@ -104,17 +106,17 @@ class syntax_plugin_gchart extends DokuWiki_Syntax_Plugin {
 
         $val = array_values($data['data']);
         $key = array_keys($data['data']);
+        $key = array_map('rawurlencode',$key);
 
-        $params = array(
-            'cht'  => $data['type'],
-            'chf'  => 'bg,s,282C2F',      # background
-            'chco' => '1C86EE',           # pie color
-            'chs'  => $data['width'].'x'.$data['height'], # size
-            'chd'  => 't:'.join(',',$val),
-            'chl'  => join('|',$key),
-        );
+        $url  = 'http://chart.apis.google.com/chart?';
+        $url .= '&cht='.$data['type'];
+        $url .= '&chf='.'bg,s,282C2F';      # background
+        $url .= '&chco='.'1C86EE';           # pie color
+        $url .= '&chs='.$data['width'].'x'.$data['height']; # size
+        $url .= '&chd=t:'.join(',',$val);
+        $url .= '&chl='.join('|',$key);
+        $url .= '&.png';
 
-        $url = 'http://chart.apis.google.com/chart?'.buildURLparams($params, '&').'&.png';
         $url = ml($url);
 
         $align = '';
@@ -125,6 +127,28 @@ class syntax_plugin_gchart extends DokuWiki_Syntax_Plugin {
         return true;
     }
 
+    /**
+     * Map our syntax to Google types
+     */
+    function _charttype($type){
+        $type = strtolower($type);
+        switch($type){
+            case 'pie2d':
+                return 'p';
+            case 'line':
+                return 'lc';
+            case 'spark':
+            case 'sparkline':
+                return 'ls';
+            case 'hbar':
+                return 'bhs';
+            case 'bar':
+            case 'vbar':
+                return 'bvs';
+        }
+        return 'p3';
+
+    }
 
 }
 
