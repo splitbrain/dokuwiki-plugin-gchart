@@ -23,10 +23,10 @@ class syntax_plugin_gchart extends DokuWiki_Syntax_Plugin {
         return array(
             'author' => 'Andreas Gohr',
             'email'  => 'andi@splitbrain.org',
-            'date'   => '2008-09-15',
-            'name'   => 'Amazon Plugin',
-            'desc'   => 'Pull bookinfo from Amazon',
-            'url'    => 'http://wiki.splitbrain.org/plugin:amazon',
+            'date'   => '2008-10-13',
+            'name'   => 'Google Chart Plugin',
+            'desc'   => 'Create simple charts using the Google Chart API',
+            'url'    => 'http://wiki.splitbrain.org/plugin:gchart',
         );
     }
 
@@ -60,6 +60,7 @@ class syntax_plugin_gchart extends DokuWiki_Syntax_Plugin {
      */
     function handle($match, $state, $pos, &$handler){
 
+        // prepare default data
         $return = array(
                      'type'   => 'p3',
                      'data'   => $data,
@@ -68,10 +69,12 @@ class syntax_plugin_gchart extends DokuWiki_Syntax_Plugin {
                      'align'  => 'center'
                     );
 
+        // preapare input
         $lines = explode("\n",$match);
         $conf = array_shift($lines);
         array_pop($lines);
 
+        // parse adhoc configs
         if(preg_match('/\b(left|center|right)\b/i',$conf,$match)) $return['align'] = $match[1];
         if(preg_match('/\b(\d+)x(\d+)\b/',$conf,$match)){
             $return['width']  = $match[1];
@@ -80,7 +83,12 @@ class syntax_plugin_gchart extends DokuWiki_Syntax_Plugin {
         if(preg_match('/\b(pie(3d)?|pie2d|line|spark(line)?|h?bar|vbar)\b/i',$conf,$match)){
             $return['type'] = $this->_charttype($match[1]);
         }
+        if(preg_match_all('/#([0-9a-f]{6})\b/i',$conf,$match)){
+            if(isset($match[1][0])) $return['fg'] = $match[1][0];
+            if(isset($match[1][1])) $return['bg'] = $match[1][1];
+        }
 
+        // parse chart data
         $data = array();
         foreach ( $lines as $line ) {
             //ignore comments (except escaped ones)
@@ -110,8 +118,8 @@ class syntax_plugin_gchart extends DokuWiki_Syntax_Plugin {
 
         $url  = 'http://chart.apis.google.com/chart?';
         $url .= '&cht='.$data['type'];
-        $url .= '&chf='.'bg,s,282C2F';      # background
-        $url .= '&chco='.'1C86EE';           # pie color
+        if($data['bg']) $url .= '&chf=bg,s,'.$data['bg'];
+        if($data['fg']) $url .= '&chco='.$data['fg'];
         $url .= '&chs='.$data['width'].'x'.$data['height']; # size
         $url .= '&chd=t:'.join(',',$val);
         $url .= '&chl='.join('|',$key);
