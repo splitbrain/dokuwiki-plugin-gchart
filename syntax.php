@@ -64,12 +64,14 @@ class syntax_plugin_gchart extends DokuWiki_Syntax_Plugin {
         $return = array(
                      'type'   => 'p3',
                      'data'   => $data,
-                     'width'  => 600,
-                     'height' => 100,
-                     'align'  => 'center'
+                     'width'  => 320,
+                     'height' => 140,
+                     'align'  => 'right',
+                     'fg'     => ltrim($this->getConf('fg'),'#'),
+                     'bg'     => ltrim($this->getConf('bg'),'#'),
                     );
 
-        // preapare input
+        // prepare input
         $lines = explode("\n",$match);
         $conf = array_shift($lines);
         array_pop($lines);
@@ -83,7 +85,7 @@ class syntax_plugin_gchart extends DokuWiki_Syntax_Plugin {
         if(preg_match('/\b(pie(3d)?|pie2d|line|spark(line)?|h?bar|vbar)\b/i',$conf,$match)){
             $return['type'] = $this->_charttype($match[1]);
         }
-        if(preg_match_all('/#([0-9a-f]{6})\b/i',$conf,$match)){
+        if(preg_match_all('/#([0-9a-f]{6}([0-9a-f][0-9a-f])?)\b/i',$conf,$match)){
             if(isset($match[1][0])) $return['fg'] = $match[1][0];
             if(isset($match[1][1])) $return['bg'] = $match[1][1];
         }
