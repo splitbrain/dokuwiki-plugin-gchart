@@ -115,6 +115,10 @@ class syntax_plugin_gchart extends DokuWiki_Syntax_Plugin {
         if($mode != 'xhtml') return false;
 
         $val = array_values($data['data']);
+        $max = max($val);
+        $min = min($val);
+        $min = min($min,0);
+        $val = array_map('rawurlencode',$val);
         $key = array_keys($data['data']);
         $key = array_map('rawurlencode',$key);
 
@@ -125,6 +129,7 @@ class syntax_plugin_gchart extends DokuWiki_Syntax_Plugin {
         $url .= '&chs='.$data['width'].'x'.$data['height']; # size
         $url .= '&chd=t:'.join(',',$val);
         $url .= '&chl='.join('|',$key);
+        $url .= '&chds='.$min.','.$max;
         $url .= '&.png';
 
         $url = ml($url);
