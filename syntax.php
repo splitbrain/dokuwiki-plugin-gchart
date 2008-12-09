@@ -135,10 +135,10 @@ class syntax_plugin_gchart extends DokuWiki_Syntax_Plugin {
         $url = ml($url);
 
         $align = '';
-        if($data['align'] == 'left')  $align=' float="left"';
-        if($data['align'] == 'right') $align=' float="right"';
+        if($data['align'] == 'left')  $align=' align="left"';
+        if($data['align'] == 'right') $align=' align="right"';
 
-        $R->doc .= '<img src="'.$url.'" class="media'.$data['align'].' alt="" width="'.$data['width'].'" height="'.$data['height'].'"'.$align.' />';
+        $R->doc .= '<img src="'.$url.'" class="media'.$data['align'].'" alt="" width="'.$data['width'].'" height="'.$data['height'].'"'.$align.' />';
         return true;
     }
 
