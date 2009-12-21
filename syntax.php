@@ -136,6 +136,9 @@ class syntax_plugin_gchart extends DokuWiki_Syntax_Plugin {
             $url .= '&chl='.join('|',$key);
         }
         $url .= '&chds='.$min.','.$max;
+        if($data['type'] == 'bhs' || $data['type'] == 'bvs') $url .= '&chbh=a'; # bar width auto size
+
+
         $url .= '&.png';
 
         $url = ml($url);
