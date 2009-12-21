@@ -23,7 +23,7 @@ class syntax_plugin_gchart extends DokuWiki_Syntax_Plugin {
         return array(
             'author' => 'Andreas Gohr',
             'email'  => 'andi@splitbrain.org',
-            'date'   => '2008-10-13',
+            'date'   => '2009-12-21',
             'name'   => 'Google Chart Plugin',
             'desc'   => 'Create simple charts using the Google Chart API',
             'url'    => 'http://wiki.splitbrain.org/plugin:gchart',
@@ -68,6 +68,7 @@ class syntax_plugin_gchart extends DokuWiki_Syntax_Plugin {
                      'height' => 140,
                      'align'  => 'right',
                      'legend' => false,
+                     'value'  => false,
                      'fg'     => ltrim($this->getConf('fg'),'#'),
                      'bg'     => ltrim($this->getConf('bg'),'#'),
                     );
@@ -80,6 +81,7 @@ class syntax_plugin_gchart extends DokuWiki_Syntax_Plugin {
         // parse adhoc configs
         if(preg_match('/\b(left|center|right)\b/i',$conf,$match)) $return['align'] = $match[1];
         if(preg_match('/\b(legend)\b/i',$conf,$match)) $return['legend'] = true;
+        if(preg_match('/\b(values?)\b/i',$conf,$match)) $return['value'] = true;
         if(preg_match('/\b(\d+)x(\d+)\b/',$conf,$match)){
             $return['width']  = $match[1];
             $return['height'] = $match[2];
@@ -130,14 +132,47 @@ class syntax_plugin_gchart extends DokuWiki_Syntax_Plugin {
         if($data['fg']) $url .= '&chco='.$data['fg'];
         $url .= '&chs='.$data['width'].'x'.$data['height']; # size
         $url .= '&chd=t:'.join(',',$val);
-        if($data['legend']){
-            $url .= '&chdl='.join('|',$key);
-        }else{
-            $url .= '&chl='.join('|',$key);
-        }
         $url .= '&chds='.$min.','.$max;
-        if($data['type'] == 'bhs' || $data['type'] == 'bvs') $url .= '&chbh=a'; # bar width auto size
 
+        switch($data['type']){
+            case 'bhs': # horizontal bar
+                $url .= '&chxt=y';
+                $url .= '&chxl=0%3A|'.join('|',array_reverse($key));
+                $url .= '&chbh=a';
+                if($data['value']) $url .= '&chm=N*f*,333333,0,-1,11';
+                break;
+            case 'bvs': # vertical bar
+                $url .= '&chxt=y,x';
+                $url .= '&chxr=0,'.$min.','.$max;
+                $url .= '&chxl=1:|'.join('|',$key);
+                $url .= '&chbh=a';
+                if($data['value']) $url .= '&chm=N*f*,333333,0,-1,11';
+                break;
+            case 'lc':  # line graph
+                $url .= '&chxt=y,x';
+                $url .= '&chxr=0,'.$min.','.$max;
+                $url .= '&chxl=1:|'.join('|',$key);
+                if($data['value']) $url .= '&chm=N*f*,333333,0,-1,11';
+                break;
+            case 'ls':  # spark line
+                if($data['value']) $url .= '&chm=N*f*,333333,0,-1,11';
+                break;
+            case 'p3':  # pie graphs
+            case 'p':
+                if($data['legend']){
+                    $url .= '&chdl='.join('|',$key);
+                    if($data['value']) $url .= '&chl='.join('|',$val);
+                }else{
+                    if($data['value']){
+                        $cnt = count($key);
+                        for($i = 0; $i < $cnt; $i++){
+                            $key[$i] .= ' ('.$val[$i].')';
+                        }
+                    }
+                    $url .= '&chl='.join('|',$key);
+                }
+                break;
+        }
 
         $url .= '&.png';
 
