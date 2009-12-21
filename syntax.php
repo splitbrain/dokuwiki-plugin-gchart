@@ -69,6 +69,7 @@ class syntax_plugin_gchart extends DokuWiki_Syntax_Plugin {
                      'align'  => 'right',
                      'legend' => false,
                      'value'  => false,
+                     'title'  => '',
                      'fg'     => ltrim($this->getConf('fg'),'#'),
                      'bg'     => ltrim($this->getConf('bg'),'#'),
                     );
@@ -79,6 +80,10 @@ class syntax_plugin_gchart extends DokuWiki_Syntax_Plugin {
         array_pop($lines);
 
         // parse adhoc configs
+        if(preg_match('/"([^"]+)"/',$conf,$match)){
+            $return['title'] = $match[1];
+            $conf = preg_replace('/"([^"]+)"/','',$conf);
+        }
         if(preg_match('/\b(left|center|right)\b/i',$conf,$match)) $return['align'] = $match[1];
         if(preg_match('/\b(legend)\b/i',$conf,$match)) $return['legend'] = true;
         if(preg_match('/\b(values?)\b/i',$conf,$match)) $return['value'] = true;
@@ -133,6 +138,7 @@ class syntax_plugin_gchart extends DokuWiki_Syntax_Plugin {
         $url .= '&chs='.$data['width'].'x'.$data['height']; # size
         $url .= '&chd=t:'.join(',',$val);
         $url .= '&chds='.$min.','.$max;
+        if($data['title']) $url .= '&chtt='.rawurlencode($data['title']);
 
         switch($data['type']){
             case 'bhs': # horizontal bar
