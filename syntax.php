@@ -124,9 +124,9 @@ class syntax_plugin_gchart extends DokuWiki_Syntax_Plugin {
         if($mode != 'xhtml') return false;
 
         $val = array_values($data['data']);
-        $max = max($val);
+        $max = ceil(max($val));
         $min = min($val);
-        $min = min($min,0);
+        $min = floor(min($min,0));
         $val = array_map('rawurlencode',$val);
         $key = array_keys($data['data']);
         $key = array_map('rawurlencode',$key);
@@ -156,7 +156,7 @@ class syntax_plugin_gchart extends DokuWiki_Syntax_Plugin {
                 break;
             case 'lc':  # line graph
                 $url .= '&chxt=y,x';
-                $url .= '&chxr=0,'.$min.','.$max;
+                $url .= '&chxr=0,'.floor(min($min,0)).','.ceil($max);
                 $url .= '&chxl=1:|'.join('|',$key);
                 if($data['value']) $url .= '&chm=N*f*,333333,0,-1,11';
                 break;
