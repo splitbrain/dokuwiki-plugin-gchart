@@ -67,6 +67,7 @@ class syntax_plugin_gchart extends DokuWiki_Syntax_Plugin {
                      'width'  => 320,
                      'height' => 140,
                      'align'  => 'right',
+                     'legend' => false,
                      'fg'     => ltrim($this->getConf('fg'),'#'),
                      'bg'     => ltrim($this->getConf('bg'),'#'),
                     );
@@ -78,6 +79,7 @@ class syntax_plugin_gchart extends DokuWiki_Syntax_Plugin {
 
         // parse adhoc configs
         if(preg_match('/\b(left|center|right)\b/i',$conf,$match)) $return['align'] = $match[1];
+        if(preg_match('/\b(legend)\b/i',$conf,$match)) $return['legend'] = true;
         if(preg_match('/\b(\d+)x(\d+)\b/',$conf,$match)){
             $return['width']  = $match[1];
             $return['height'] = $match[2];
@@ -128,7 +130,11 @@ class syntax_plugin_gchart extends DokuWiki_Syntax_Plugin {
         if($data['fg']) $url .= '&chco='.$data['fg'];
         $url .= '&chs='.$data['width'].'x'.$data['height']; # size
         $url .= '&chd=t:'.join(',',$val);
-        $url .= '&chl='.join('|',$key);
+        if($data['legend']){
+            $url .= '&chdl='.join('|',$key);
+        }else{
+            $url .= '&chl='.join('|',$key);
+        }
         $url .= '&chds='.$min.','.$max;
         $url .= '&.png';
 
