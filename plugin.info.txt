@@ -1,0 +1,8 @@
+base    gchart
+author  Andreas Gohr
+email   andi@splitbrain.org
+date    2009-12-21
+name    Google Chart Plugin
+desc    Create simple charts using the Google Chart API
+url     http://www.dokuwiki.org/plugin:gchart
+

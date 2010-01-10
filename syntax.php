@@ -17,20 +17,6 @@ require_once(DOKU_PLUGIN.'syntax.php');
 class syntax_plugin_gchart extends DokuWiki_Syntax_Plugin {
 
     /**
-     * return some info
-     */
-    function getInfo(){
-        return array(
-            'author' => 'Andreas Gohr',
-            'email'  => 'andi@splitbrain.org',
-            'date'   => '2009-12-21',
-            'name'   => 'Google Chart Plugin',
-            'desc'   => 'Create simple charts using the Google Chart API',
-            'url'    => 'http://wiki.splitbrain.org/plugin:gchart',
-        );
-    }
-
-    /**
      * What kind of syntax are we?
      */
     function getType(){
