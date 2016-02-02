@@ -44,7 +44,7 @@ class syntax_plugin_gchart extends DokuWiki_Syntax_Plugin {
     /**
      * Handle the match
      */
-    function handle($match, $state, $pos, &$handler){
+    function handle($match, $state, $pos, Doku_Handler $handler){
 
         // prepare default data
         $return = array(
@@ -106,7 +106,7 @@ class syntax_plugin_gchart extends DokuWiki_Syntax_Plugin {
     /**
      * Create output
      */
-    function render($mode, &$R, $data) {
+    function render($mode, Doku_Renderer $R, $data) {
         if($mode != 'xhtml') return false;
 
         $val = array_values($data['data']);
