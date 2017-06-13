@@ -49,7 +49,7 @@ class syntax_plugin_gchart extends DokuWiki_Syntax_Plugin {
         // prepare default data
         $return = array(
                      'type'   => 'p3',
-                     'data'   => $data,
+                     'data'   => array(),
                      'width'  => 320,
                      'height' => 140,
                      'align'  => 'right',
