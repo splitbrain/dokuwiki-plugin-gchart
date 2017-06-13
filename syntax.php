@@ -117,7 +117,7 @@ class syntax_plugin_gchart extends DokuWiki_Syntax_Plugin {
         $key = array_keys($data['data']);
         $key = array_map('rawurlencode',$key);
 
-        $url  = 'http://chart.apis.google.com/chart?';
+        $url  = 'https://chart.apis.google.com/chart?';
         $url .= '&cht='.$data['type'];
         if($data['bg']) $url .= '&chf=bg,s,'.$data['bg'];
         if($data['fg']) $url .= '&chco='.$data['fg'];
