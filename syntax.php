@@ -16,6 +16,19 @@ require_once(DOKU_PLUGIN.'syntax.php');
  */
 class syntax_plugin_gchart extends DokuWiki_Syntax_Plugin {
 
+    private $supported_charts = array(
+        'qr' => 'qr',
+        'pie' => 'p3',
+        'pie3d' => 'p3',
+        'pie2d' => 'p',
+        'line' => 'lc',
+        'spark' => 'ls',
+        'sparkline' => 'ls',
+        'bar' => 'bvs',
+        'hbar' => 'bhs',
+        'vbar' => 'bvs',
+    );
+
     /**
      * What kind of syntax are we?
      */
@@ -77,8 +90,10 @@ class syntax_plugin_gchart extends DokuWiki_Syntax_Plugin {
             $return['width']  = $match[1];
             $return['height'] = $match[2];
         }
-        if(preg_match('/\b(pie(3d)?|pie2d|line|spark(line)?|h?bar|vbar)\b/i',$conf,$match)){
-            $return['type'] = $this->_charttype($match[1]);
+
+        $type_regex = '/\b(' . join('|', array_keys($this->supported_charts)) . ')\b/i';
+        if(preg_match($type_regex,$conf,$match)){
+            $return['type'] = $this->supported_charts[strtolower($match[1])];
         }
         if(preg_match_all('/#([0-9a-f]{6}([0-9a-f][0-9a-f])?)\b/i',$conf,$match)){
             if(isset($match[1][0])) $return['fg'] = $match[1][0];
@@ -118,42 +133,44 @@ class syntax_plugin_gchart extends DokuWiki_Syntax_Plugin {
         $key = array_map('rawurlencode',$key);
 
         $url  = 'https://chart.apis.google.com/chart?';
-        $url .= '&cht='.$data['type'];
-        if($data['bg']) $url .= '&chf=bg,s,'.$data['bg'];
-        if($data['fg']) $url .= '&chco='.$data['fg'];
-        $url .= '&chs='.$data['width'].'x'.$data['height']; # size
-        $url .= '&chd=t:'.join(',',$val);
-        $url .= '&chds='.$min.','.$max;
-        if($data['title']) $url .= '&chtt='.rawurlencode($data['title']);
+        $parameters = array();
+
+        $parameters['cht'] = $data['type'];
+        if($data['bg']) $parameters['chf'] = 'bg,s,'.$data['bg'];
+        if($data['fg']) $parameters['chco'] = $data['fg'];
+        $parameters['chs'] = $data['width'].'x'.$data['height']; # size
+        $parameters['chd'] = 't:'.join(',',$val);
+        $parameters['chds'] = $min.','.$max;
+        if($data['title']) $parameters['chtt'] = rawurlencode($data['title']);
 
         switch($data['type']){
             case 'bhs': # horizontal bar
-                $url .= '&chxt=y';
-                $url .= '&chxl=0%3A|'.join('|',array_reverse($key));
-                $url .= '&chbh=a';
-                if($data['value']) $url .= '&chm=N*f*,333333,0,-1,11';
+                $parameters['chxt'] = 'y';
+                $parameters['chxl'] = '0%3A|'.join('|',array_reverse($key));
+                $parameters['chbh'] = 'a';
+                if($data['value']) $parameters['chm'] = 'N*f*,333333,0,-1,11';
                 break;
             case 'bvs': # vertical bar
-                $url .= '&chxt=y,x';
-                $url .= '&chxr=0,'.$min.','.$max;
-                $url .= '&chxl=1:|'.join('|',$key);
-                $url .= '&chbh=a';
-                if($data['value']) $url .= '&chm=N*f*,333333,0,-1,11';
+                $parameters['chxt'] = 'y,x';
+                $parameters['chxr'] = '0,'.$min.','.$max;
+                $parameters['chxl'] = '1:|'.join('|',$key);
+                $parameters['chbh'] = 'a';
+                if($data['value']) $parameters['chm'] = 'N*f*,333333,0,-1,11';
                 break;
             case 'lc':  # line graph
-                $url .= '&chxt=y,x';
-                $url .= '&chxr=0,'.floor(min($min,0)).','.ceil($max);
-                $url .= '&chxl=1:|'.join('|',$key);
-                if($data['value']) $url .= '&chm=N*f*,333333,0,-1,11';
+                $parameters['chxt'] = 'y,x';
+                $parameters['chxr'] = '0,'.floor(min($min,0)).','.ceil($max);
+                $parameters['chxl'] = '1:|'.join('|',$key);
+                if($data['value']) $parameters['chm'] = 'N*f*,333333,0,-1,11';
                 break;
             case 'ls':  # spark line
-                if($data['value']) $url .= '&chm=N*f*,333333,0,-1,11';
+                if($data['value']) $parameters['chm'] = 'N*f*,333333,0,-1,11';
                 break;
             case 'p3':  # pie graphs
             case 'p':
                 if($data['legend']){
-                    $url .= '&chdl='.join('|',$key);
-                    if($data['value']) $url .= '&chl='.join('|',$val);
+                    $parameters['chdl'] = join('|',$key);
+                    if($data['value']) $parameters['chl'] = join('|',$val);
                 }else{
                     if($data['value']){
                         $cnt = count($key);
@@ -161,13 +178,21 @@ class syntax_plugin_gchart extends DokuWiki_Syntax_Plugin {
                             $key[$i] .= ' ('.$val[$i].')';
                         }
                     }
-                    $url .= '&chl='.join('|',$key);
+                    $parameters['chl'] = join('|',$key);
                 }
+                break;
+            case 'qr':
+                $rawval = array_keys($data['data']);
+                if (in_array($rawval[0], ['L', 'M', 'Q', 'H'])) {
+                    $parameters['chld'] = array_shift($rawval);
+                }
+                unset($parameters['chd']);
+                unset($parameters['chds']);
+                $parameters['chl'] = join(';', $rawval);
                 break;
         }
 
-        $url .= '&.png';
-
+        $url .= http_build_query($parameters, '', '&') . '&.png';
         $url = ml($url);
 
         $align = '';
@@ -177,30 +202,6 @@ class syntax_plugin_gchart extends DokuWiki_Syntax_Plugin {
         $R->doc .= '<img src="'.$url.'" class="media'.$data['align'].'" alt="" width="'.$data['width'].'" height="'.$data['height'].'"'.$align.' />';
         return true;
     }
-
-    /**
-     * Map our syntax to Google types
-     */
-    function _charttype($type){
-        $type = strtolower($type);
-        switch($type){
-            case 'pie2d':
-                return 'p';
-            case 'line':
-                return 'lc';
-            case 'spark':
-            case 'sparkline':
-                return 'ls';
-            case 'hbar':
-                return 'bhs';
-            case 'bar':
-            case 'vbar':
-                return 'bvs';
-        }
-        return 'p3';
-
-    }
-
 }
 
 //Setup VIM: ex: et ts=4 enc=utf-8 :
