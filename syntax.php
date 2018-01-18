@@ -83,9 +83,15 @@ class syntax_plugin_gchart extends DokuWiki_Syntax_Plugin {
             $return['title'] = $match[1];
             $conf = preg_replace('/"([^"]+)"/','',$conf);
         }
-        if(preg_match('/\b(left|center|right)\b/i',$conf,$match)) $return['align'] = $match[1];
-        if(preg_match('/\b(legend)\b/i',$conf,$match)) $return['legend'] = true;
-        if(preg_match('/\b(values?)\b/i',$conf,$match)) $return['value'] = true;
+        if(preg_match('/\b(left|center|right)\b/i',$conf,$match)){
+            $return['align'] = strtolower($match[1]);
+        }
+        if(preg_match('/\b(legend)\b/i',$conf,$match)){
+            $return['legend'] = true;
+        }
+        if(preg_match('/\b(values?)\b/i',$conf,$match)){
+            $return['value'] = true;
+        }
         if(preg_match('/\b(\d+)x(\d+)\b/',$conf,$match)){
             $return['width']  = $match[1];
             $return['height'] = $match[2];
@@ -96,8 +102,12 @@ class syntax_plugin_gchart extends DokuWiki_Syntax_Plugin {
             $return['type'] = $this->supported_charts[strtolower($match[1])];
         }
         if(preg_match_all('/#([0-9a-f]{6}([0-9a-f][0-9a-f])?)\b/i',$conf,$match)){
-            if(isset($match[1][0])) $return['fg'] = $match[1][0];
-            if(isset($match[1][1])) $return['bg'] = $match[1][1];
+            if(isset($match[1][0])){
+                $return['fg'] = $match[1][0];
+            }
+            if(isset($match[1][1])){
+                $return['bg'] = $match[1][1];
+            }
         }
 
         // parse chart data
@@ -107,7 +117,9 @@ class syntax_plugin_gchart extends DokuWiki_Syntax_Plugin {
             $line = preg_replace('/(?<![&\\\\])#.*$/','',$line);
             $line = str_replace('\\#','#',$line);
             $line = trim($line);
-            if(empty($line)) continue;
+            if(empty($line)){
+                continue;
+            }
             $line = preg_split('/(?<!\\\\)=/',$line,2); //split on unescaped equal sign
             $line[0] = str_replace('\\=','=',$line[0]);
             $line[1] = str_replace('\\=','=',$line[1]);
@@ -122,55 +134,70 @@ class syntax_plugin_gchart extends DokuWiki_Syntax_Plugin {
      * Create output
      */
     function render($mode, Doku_Renderer $R, $data) {
-        if($mode != 'xhtml') return false;
+        if ($mode != 'xhtml') {
+            return false;
+        }
 
-        $val = array_values($data['data']);
+        $val = array_map('floatval', $data['data']);
         $max = ceil(max($val));
-        $min = min($val);
-        $min = floor(min($min,0));
-        $val = array_map('rawurlencode',$val);
+        $min = floor(min($val,0));
         $key = array_keys($data['data']);
-        $key = array_map('rawurlencode',$key);
 
         $url  = 'https://chart.apis.google.com/chart?';
         $parameters = array();
 
         $parameters['cht'] = $data['type'];
-        if($data['bg']) $parameters['chf'] = 'bg,s,'.$data['bg'];
-        if($data['fg']) $parameters['chco'] = $data['fg'];
+        if($data['bg']) {
+            $parameters['chf'] = 'bg,s,'.$data['bg'];
+        }
+        if($data['fg']) {
+            $parameters['chco'] = $data['fg'];
+        }
         $parameters['chs'] = $data['width'].'x'.$data['height']; # size
         $parameters['chd'] = 't:'.join(',',$val);
         $parameters['chds'] = $min.','.$max;
-        if($data['title']) $parameters['chtt'] = rawurlencode($data['title']);
+        if($data['title']) {
+            $parameters['chtt'] = rawurlencode($data['title']);
+        }
 
         switch($data['type']){
             case 'bhs': # horizontal bar
                 $parameters['chxt'] = 'y';
-                $parameters['chxl'] = '0%3A|'.join('|',array_reverse($key));
+                $parameters['chxl'] = '0:|'.join('|',array_reverse($key));
                 $parameters['chbh'] = 'a';
-                if($data['value']) $parameters['chm'] = 'N*f*,333333,0,-1,11';
+                if($data['value']) {
+                    $parameters['chm'] = 'N*f*,333333,0,-1,11';
+                }
                 break;
             case 'bvs': # vertical bar
                 $parameters['chxt'] = 'y,x';
                 $parameters['chxr'] = '0,'.$min.','.$max;
                 $parameters['chxl'] = '1:|'.join('|',$key);
                 $parameters['chbh'] = 'a';
-                if($data['value']) $parameters['chm'] = 'N*f*,333333,0,-1,11';
+                if($data['value']) {
+                    $parameters['chm'] = 'N*f*,333333,0,-1,11';
+                }
                 break;
             case 'lc':  # line graph
                 $parameters['chxt'] = 'y,x';
                 $parameters['chxr'] = '0,'.floor(min($min,0)).','.ceil($max);
                 $parameters['chxl'] = '1:|'.join('|',$key);
-                if($data['value']) $parameters['chm'] = 'N*f*,333333,0,-1,11';
+                if($data['value']) {
+                    $parameters['chm'] = 'N*f*,333333,0,-1,11';
+                }
                 break;
             case 'ls':  # spark line
-                if($data['value']) $parameters['chm'] = 'N*f*,333333,0,-1,11';
+                if($data['value']) {
+                    $parameters['chm'] = 'N*f*,333333,0,-1,11';
+                }
                 break;
             case 'p3':  # pie graphs
             case 'p':
                 if($data['legend']){
                     $parameters['chdl'] = join('|',$key);
-                    if($data['value']) $parameters['chl'] = join('|',$val);
+                    if($data['value']){
+                        $parameters['chl'] = join('|',$val);
+                    }
                 }else{
                     if($data['value']){
                         $cnt = count($key);
@@ -193,13 +220,16 @@ class syntax_plugin_gchart extends DokuWiki_Syntax_Plugin {
         }
 
         $url .= http_build_query($parameters, '', '&') . '&.png';
-        $url = ml($url);
 
         $align = '';
-        if($data['align'] == 'left')  $align=' align="left"';
-        if($data['align'] == 'right') $align=' align="right"';
+        if($data['align'] == 'left') {
+            $align=' align="left"';
+        } elseif($data['align'] == 'right') {
+            $align=' align="right"';
+        }
 
-        $R->doc .= '<img src="'.$url.'" class="media'.$data['align'].'" alt="" width="'.$data['width'].'" height="'.$data['height'].'"'.$align.' />';
+        $R->doc .= '<img src="'.ml($url).'" class="media'.$data['align'].'" alt="" width="'.$data['width'].'" height="'.$data['height'].'"'.$align.' />';
+
         return true;
     }
 }
