@@ -138,7 +138,7 @@ class syntax_plugin_gchart extends DokuWiki_Syntax_Plugin {
             return false;
         }
 
-        $val = array_map('floatval', $data['data']);
+        $val = array_map('floatval', array_values($data['data']));
         $max = ceil(max($val));
         $min = floor(min($val,0));
         $key = array_keys($data['data']);
