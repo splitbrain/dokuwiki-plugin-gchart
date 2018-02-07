@@ -139,8 +139,8 @@ class syntax_plugin_gchart extends DokuWiki_Syntax_Plugin {
         }
 
         $val = array_map('floatval', array_values($data['data']));
-        $max = ceil(max($val));
-        $min = floor(min($val,0));
+        $max = max(0, ceil(max($val)));
+        $min = min(0, floor(min($val)));
         $key = array_keys($data['data']);
 
         $url  = 'https://chart.apis.google.com/chart?';
