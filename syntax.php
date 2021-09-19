@@ -156,6 +156,7 @@ class syntax_plugin_gchart extends DokuWiki_Syntax_Plugin {
         $parameters['chs'] = $data['width'].'x'.$data['height']; # size
         $parameters['chd'] = 't:'.join(',',$val);
         $parameters['chds'] = $min.','.$max;
+        $parameters['choe'] = 'UTF-8'
         if($data['title']) {
             $parameters['chtt'] = $data['title'];
         }
