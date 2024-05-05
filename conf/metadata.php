@@ -1,6 +1,5 @@
 <?php
 
 $meta['charturl'] = array('string');
-$meta['fg']     = array('string','_pattern' => '/^#[0-9a-f]{6}([0-9a-f][0-9a-f])?$/i');
-$meta['bg']     = array('string','_pattern' => '/^#[0-9a-f]{6}([0-9a-f][0-9a-f])?$/i');
-
+$meta['fg'] = array('string', '_pattern' => '/^#[0-9a-f]{6}([0-9a-f][0-9a-f])?$/i');
+$meta['bg'] = array('string', '_pattern' => '/^#[0-9a-f]{6}([0-9a-f][0-9a-f])?$/i');
