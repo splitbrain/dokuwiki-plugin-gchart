@@ -143,7 +143,6 @@ class syntax_plugin_gchart extends DokuWiki_Syntax_Plugin {
         $min = min(0, floor(min($val)));
         $key = array_keys($data['data']);
 
-        $url  = 'https://chart.apis.google.com/chart?';
         $parameters = array();
 
         $parameters['cht'] = $data['type'];
@@ -151,7 +150,7 @@ class syntax_plugin_gchart extends DokuWiki_Syntax_Plugin {
             $parameters['chf'] = 'bg,s,'.$data['bg'];
         }
         if($data['fg']) {
-            $parameters['chco'] = $data['fg'];
+            $parameters['chco'] = join('|', $this->createColorPalette($data['fg'], count($val)));
         }
         $parameters['chs'] = $data['width'].'x'.$data['height']; # size
         $parameters['chd'] = 't:'.join(',',$val);
@@ -220,7 +219,7 @@ class syntax_plugin_gchart extends DokuWiki_Syntax_Plugin {
                 break;
         }
 
-        $url .= http_build_query($parameters, '', '&') . '&.png';
+        $url = $this->getConf('charturl') . '?' . http_build_query($parameters, '', '&') . '&.png';
 
         $align = '';
         if($data['align'] == 'left') {
@@ -232,6 +231,16 @@ class syntax_plugin_gchart extends DokuWiki_Syntax_Plugin {
         $R->doc .= '<img src="'.ml($url).'" class="media'.$data['align'].'" alt="" width="'.$data['width'].'" height="'.$data['height'].'"'.$align.' />';
 
         return true;
+    }
+
+    protected function createColorPalette($rgb, $count)
+    {
+        $palette = array();
+        $inc = floor(255 / $count);
+        for ($i = 0; $i < $count; $i++) {
+            $palette[] = $rgb . dechex(255 - $i * $inc);
+        }
+        return $palette;
     }
 }
 
