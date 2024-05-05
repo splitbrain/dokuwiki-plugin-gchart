@@ -193,20 +193,13 @@ class syntax_plugin_gchart extends SyntaxPlugin
                 break;
             case 'p3':  # pie graphs
             case 'p':
-                if ($data['legend']) {
-                    $parameters['chdl'] = implode('|', $key);
-                    if ($data['value']) {
-                        $parameters['chl'] = implode('|', $val);
+                if ($data['value']) {
+                    $cnt = count($key);
+                    for ($i = 0; $i < $cnt; $i++) {
+                        $key[$i] .= ' (' . $val[$i] . ')';
                     }
-                } else {
-                    if ($data['value']) {
-                        $cnt = count($key);
-                        for ($i = 0; $i < $cnt; $i++) {
-                            $key[$i] .= ' (' . $val[$i] . ')';
-                        }
-                    }
-                    $parameters['chl'] = implode('|', $key);
                 }
+                $parameters['chl'] = implode('|', $key);
                 break;
             case 'qr':
                 $rawval = array_keys($data['data']);
