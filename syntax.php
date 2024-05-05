@@ -220,7 +220,6 @@ class syntax_plugin_gchart extends SyntaxPlugin
         }
 
         $url = $this->getConf('charturl') . '?' . http_build_query($parameters, '', '&') . '&.png';
-        msg($url);
 
         $attr = [
             'class' => 'media' . $data['align'],
